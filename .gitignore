@@ -1,0 +1,6 @@
+.vscode
+/build
+*/main.dSYM/Contents
+CMakeLists.txt
+.DS_Store
+src/.DS_Store
