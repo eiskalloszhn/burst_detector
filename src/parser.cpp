@@ -6,6 +6,10 @@
 
 using json = nlohmann::json;
 
+static std::regex url("https?://\\S+");
+static std::regex removed("\\[removed\\]", std::regex_constants::icase);
+static std::regex deleted("\\[deleted\\]", std::regex_constants::icase);
+
 int64_t extract_timestamp(const json& obj){
     if(obj["created_utc"].is_string()){
         return std::stoll(obj["created_utc"].get<std::string>());
@@ -119,16 +123,15 @@ std::optional<Record> parse_record(std::string& line){
         return std::nullopt;
     }
 
-    std::regex url("https?://\\S+");
-    std::regex removed("\\[removed\\]", std::regex_constants::icase);
-    std::regex deleted("\\[deleted\\]", std::regex_constants::icase);
     result.text= std::regex_replace(result.text, url, " ");
     result.text= std::regex_replace(result.text, removed, " ");
     result.text= std::regex_replace(result.text, deleted, " ");
     result.author= std::regex_replace(result.author, removed, " ");
     result.author= std::regex_replace(result.author, deleted, " ");
     
-    result.text = stripper(result.text);
+    //result.text = stripper(result.text);
+
+
 
     std::string trimmed = result.text;
     trimmed.erase(remove_if(trimmed.begin(), trimmed.end(), isspace), trimmed.end());

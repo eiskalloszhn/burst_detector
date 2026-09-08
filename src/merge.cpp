@@ -18,7 +18,7 @@ int Merger::smallest_index(){
     int index = -1;
     
     for(int i=0; i<2; i++){
-        if(candidates[0].has_value()){
+        if(candidates[i].has_value()){
             if(candidates[i]->timestamp < smallest) { smallest = candidates[i]->timestamp; index = i; }
         }
     }

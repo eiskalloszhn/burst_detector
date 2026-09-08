@@ -7,7 +7,6 @@ class Merger{
     
     public:
         Merger(const std::array<std::string, 2>& filepaths);
-        // virtual ~Merger();
         std::optional<Record> merged_next();
         bool has_next();
     
