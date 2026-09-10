@@ -1,5 +1,6 @@
 #include <iostream>
 #include <optional>
+#include <chrono>
 #include "json.hpp"
 #include "reader.hpp"
 #include "parser.hpp"
@@ -7,21 +8,17 @@
 using json = nlohmann::json;
 
 int main(int argc, char* argv[]) {
+    auto start = std::chrono::steady_clock::now();
+int count = 0;
+ZSTDReader reader(argv[1]);
+while (true) {
+    std::optional<std::string> line = reader.next_line();
+    if (!line.has_value()) break;
+    count++;
+    auto elapsed = std::chrono::steady_clock::now() - start;
+    if (elapsed >= std::chrono::seconds(30)) break;
+}
+std::cout << "Lines read in 30 seconds: " << count << std::endl;
+return 0;
 
-    std::array<std::string, 2> filepaths = { std::string(argv[1]), std::string(argv[2]) };
-
-    Merger merger(filepaths);
-
-    int i = 0;
-    int mult = 10;
-    while(merger.has_next()){
-        i++;
-        std::optional<Record> record = merger.merged_next();
-        //std::cout << record->author << " " << record->text << " " << record->typeflag << '\n' << std::endl;
-        if(i==mult) { std::cout<< i << '\n' << std::endl; mult*=10;}
-
-        if(i==2000) { break; }
-    };
-
-    return 0;
 }
