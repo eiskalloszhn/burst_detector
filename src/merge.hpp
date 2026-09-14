@@ -14,6 +14,4 @@ class Merger{
         std::array<ZSTDReader, 2> readers;
         std::array<std::optional<Record>, 2> candidates;
         int smallest_index();
-
-
 };
