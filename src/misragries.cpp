@@ -30,12 +30,14 @@ void MisraGries::merge(const MisraGries& other){
     std::vector<std::pair<int64_t, int64_t>> ordered(merged.begin(), merged.end());
     std::sort(ordered.begin(), ordered.end(), comp);
 
-    int64_t sth_biggest = ordered[s-1].second;
+    if(ordered.size() > s){
+        int64_t sth_biggest = ordered[s-1].second;
 
-    for(auto iter = merged.begin(); iter != merged.end();){
-        iter->second -= sth_biggest;
-        if(iter->second == 0) { iter = merged.erase(iter); }
-        else { ++iter; }
+        for(auto iter = merged.begin(); iter != merged.end();){
+            iter->second -= sth_biggest;
+            if(iter->second <= 0) { iter = merged.erase(iter); }
+            else { ++iter; }
+        }
     }
 
     this->H = merged;
@@ -45,7 +47,7 @@ void MisraGries::merge(const MisraGries& other){
 std::unordered_map<int64_t, int64_t> MisraGries::get_frequencies(){
     std::unordered_map<int64_t, int64_t> high_freq;
     for(auto iter = this->H.begin(); iter != this->H.end();){
-        if(iter->second > this->m / this->s ) { high_freq[iter->first] = iter->second; }
+        if(iter->second > this->m / this->s ) { high_freq[iter->first] = iter->second; ++iter; }
         else { ++iter; }
     }
     return high_freq;
