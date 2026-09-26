@@ -1,7 +1,5 @@
 #include "misragries.hpp"
 
-MisraGries::MisraGries(int s) : s(s), m(0){}
-
 void MisraGries::insert(int64_t x){
     ++m;
 

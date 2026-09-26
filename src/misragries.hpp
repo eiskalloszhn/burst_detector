@@ -8,7 +8,7 @@
 class MisraGries{
 
     public:
-        MisraGries(int s);
+        MisraGries(int s) : s(s), m(0) {}
         void insert(int64_t x);
         void merge(const MisraGries& other);
         std::unordered_map<int64_t, int64_t> get_frequencies(); // no map= O(1) vs O(log n) access
