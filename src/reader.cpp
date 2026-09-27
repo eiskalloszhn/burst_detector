@@ -43,6 +43,7 @@ std::optional<std::string> ZSTDReader::next_line(){
             input.pos = 0;
         }
 
+        size_t in_before = input.pos;
         output.pos = 0;
         size_t val = ZSTD_decompressStream(dstream, &output, &input);
         
@@ -51,8 +52,12 @@ std::optional<std::string> ZSTDReader::next_line(){
         } else {
             std::string chunk(out_vec.data(), output.pos);
             tailing += chunk;
+        }
 
-            size_t newline_pos = tailing.find('\n');
+        if (output.pos == 0 && input.pos == in_before) {
+            if(input.pos == input.size) continue;
+            throw std::runtime_error(
+                "stream interrotto");
         }
     }
 }

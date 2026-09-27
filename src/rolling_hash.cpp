@@ -28,7 +28,7 @@ void rolling_hash(SlidingWindow& sw, const std::vector<std::string>& tokens, int
 
     int64_t roll_hash = first_hash;
         for(int pos = 5; pos <= tokens.size() - 1; pos++){
-            roll_hash = (int64_t)(((roll_hash - ((__int128)token_to_int(tokens[pos - 5])*p4 % q) + q) * p ) + token_to_int(tokens[pos]) ) %q;
+            roll_hash = (int64_t)(((__int128)(roll_hash - ((__int128)token_to_int(tokens[pos - 5])*p4 % q) + q) * p ) + token_to_int(tokens[pos]) ) %q;
             sw.process(roll_hash, timestamp);
         }
 }

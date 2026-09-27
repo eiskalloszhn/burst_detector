@@ -100,7 +100,7 @@ std::optional<Record> parse_record(std::string& line){
 
     try{
         rec = json::parse(line);
-        bool is_sub = rec.contains("permalink");
+        bool is_sub = rec.contains("title");
 
         result.typeflag = is_sub;
         result.author = rec["author"].get<std::string>();
@@ -111,15 +111,25 @@ std::optional<Record> parse_record(std::string& line){
             result.text = rec["title"].get<std::string>() + " " + rec["selftext"].get<std::string>();
         
         } else { // is_comment
+            if(rec.contains("permalink")) {
+                result.link = "https://www.reddit.com" + rec["permalink"].get<std::string>();
+            } else {
             int len = rec["link_id"].get<std::string>().length();
             result.link = "https://www.reddit.com/r/memes/comments/"
                 + rec["link_id"].get<std::string>().substr(3, len-3) 
                 + "/_/" + rec["id"].get<std::string>();
+            }
             result.text = rec["body"].get<std::string>();
         }
         
     } 
     catch(json::exception& e){
+        static int64_t err_count = 0;
+        ++err_count;
+        if(err_count <= 20 || err_count % 5000 == 0){
+            std::cerr << "parse_record: eccezione #" << err_count << ": " << e.what()
+                      << " | riga (troncata): " << line.substr(0, 300) << std::endl;
+        }
         return std::nullopt;
     }
 
