@@ -138,6 +138,7 @@ std::optional<Record> parse_record(std::string& line){
     result.text= std::regex_replace(result.text, deleted, " ");
     result.author= std::regex_replace(result.author, removed, " ");
     result.author= std::regex_replace(result.author, deleted, " ");
+
     
     //result.text = stripper(result.text);
 
@@ -146,7 +147,7 @@ std::optional<Record> parse_record(std::string& line){
     std::string trimmed = result.text;
     trimmed.erase(remove_if(trimmed.begin(), trimmed.end(), isspace), trimmed.end());
 
-    if(trimmed.empty()) { return std::nullopt; }
+    if(trimmed.empty() || result.author == "bot") { return std::nullopt; }
 
     return result;
 }

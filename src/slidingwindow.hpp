@@ -4,8 +4,8 @@
 #include <map>
 #include <deque>
 
-static const int64_t WINDOW_SIZE = 7776000LL; // 3 months
-static const int64_t BUCKET_SIZE = 604800LL; // 1 week
+static const int64_t WINDOW_SIZE = 15778476LL; // 6 months
+static const int64_t BUCKET_SIZE = 2629746LL; // 1 month
 
 struct Bucket{
     MisraGries mg;
