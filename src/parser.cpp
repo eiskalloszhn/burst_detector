@@ -123,31 +123,18 @@ std::optional<Record> parse_record(std::string& line){
         }
         
     } 
-    catch(json::exception& e){
-        static int64_t err_count = 0;
-        ++err_count;
-        if(err_count <= 20 || err_count % 5000 == 0){
-            std::cerr << "parse_record: eccezione #" << err_count << ": " << e.what()
-                      << " | riga (troncata): " << line.substr(0, 300) << std::endl;
-        }
-        return std::nullopt;
-    }
+    catch(json::exception& e){ return std::nullopt; }
 
     result.text= std::regex_replace(result.text, url, " ");
     result.text= std::regex_replace(result.text, removed, " ");
     result.text= std::regex_replace(result.text, deleted, " ");
-    result.author= std::regex_replace(result.author, removed, " ");
-    result.author= std::regex_replace(result.author, deleted, " ");
-
-    
-    //result.text = stripper(result.text);
-
-
+    result.author= std::regex_replace(result.author, removed, "AUTHOR_REMOVED");
+    result.author= std::regex_replace(result.author, deleted, "AUTHOR_REMOVED");
 
     std::string trimmed = result.text;
     trimmed.erase(remove_if(trimmed.begin(), trimmed.end(), isspace), trimmed.end());
 
-    if(trimmed.empty() || result.author == "bot") { return std::nullopt; }
+    if(trimmed.empty()) { return std::nullopt; }
 
     return result;
 }
