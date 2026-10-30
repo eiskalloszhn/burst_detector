@@ -57,7 +57,7 @@ std::optional<std::string> ZSTDReader::next_line(){
         if (output.pos == 0 && input.pos == in_before) {
             if(input.pos == input.size) continue;
             throw std::runtime_error(
-                "stream interrotto");
+                "stream interrupted");
         }
     }
 }
