@@ -10,7 +10,8 @@ const static int64_t p = [](){
     std::mt19937_64 gen(12345);
     return (int64_t)(gen() % (q - 2000000000LL)) + 1000000000LL;
 }();
-const static int64_t p1 = (__int128)p * p%q;
+
+const static int64_t p1 = p;
 const static int64_t p2 = (__int128)p1 * p%q;
 const static int64_t p3 = (__int128)p2 * p%q;
 const static int64_t p4 = (__int128)p3 * p%q;
@@ -39,12 +40,12 @@ void rolling_hash(SlidingWindow& sw,
            tokens[start+2] + " " + tokens[start+3] + " " + tokens[start+4];
     };
 
-    int64_t first_hash = (int64_t)( (__int128)token_to_int(tokens[0])*p4 %q + 
+    int64_t first_hash = (int64_t)(( (__int128)token_to_int(tokens[0])*p4 %q + 
                                     (__int128)token_to_int(tokens[1])*p3 %q + 
                                     (__int128)token_to_int(tokens[2])*p2 %q + 
                                     (__int128)token_to_int(tokens[3])*p1 %q + 
                                     (__int128)token_to_int(tokens[4]) )
-                                    % q;
+                                    % q );
     
     if(known_hitters.count(first_hash)){
         auto author_hash = ( (double)token_to_int(author) + 1 ) / (double)q;
@@ -64,7 +65,10 @@ void rolling_hash(SlidingWindow& sw,
 
     int64_t roll_hash = first_hash;
         for(int pos = 5; pos <= tokens.size() - 1; pos++){
-            roll_hash = (int64_t)(((__int128)(roll_hash - ((__int128)token_to_int(tokens[pos - 5])*p4 % q) + q) * p ) + token_to_int(tokens[pos]) ) %q;
+            __int128 rh = roll_hash;
+            rh -= (__int128)token_to_int(tokens[pos - 5]) * p4 % q;
+            if(rh < 0) rh += q;
+            roll_hash = (int64_t)((rh * p + token_to_int(tokens[pos])) % q);
             
             if(known_hitters.count(roll_hash)){
                 auto author_hash = (double)token_to_int(author) / (double)q;
