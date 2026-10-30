@@ -2,6 +2,7 @@
 #include <set>
 
 void BottomK::insert_sketch(double value){
+    ++n;
     if(bottomk.count(value)) return;
     if(bottomk.size() < k) { bottomk.insert(value); }
     else if(bottomk.size() == k) {
