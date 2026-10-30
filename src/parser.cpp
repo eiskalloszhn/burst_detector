@@ -131,7 +131,7 @@ std::optional<Record> parse_record(std::string& line){
     result.author= std::regex_replace(result.author, removed, "AUTHOR_REMOVED");
     result.author= std::regex_replace(result.author, deleted, "AUTHOR_REMOVED");
 
-    std::string trimmed = result.text;
+    std::string trimmed = stripper(result.text);
     trimmed.erase(remove_if(trimmed.begin(), trimmed.end(), isspace), trimmed.end());
 
     if(trimmed.empty()) { return std::nullopt; }
