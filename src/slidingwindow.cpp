@@ -1,21 +1,23 @@
 #include "slidingwindow.hpp"
 #include <cmath>
 
-int level(int64_t count){
-    if(count == 0) return -1;
-    return (int) std::floor(std::log2((double) count));
-}
+static const int B = 3;
 
 bool SlidingWindow::merge(){
-    for(int i = buckets.size() - 2; i >= 0; i--){
-        if(level(buckets[i].element_count) == level(buckets[i+1].element_count)){
-            buckets[i+1].mg.merge(buckets[i].mg);
-            buckets[i+1].element_count += buckets[i].element_count;
-            buckets[i+1].oldest_timestamp = buckets[i].oldest_timestamp;
-            buckets.erase(buckets.begin() + i);
+    int start = 0;
+    for(int i = 1; i < (int)buckets.size(); i++){
+        if(buckets[i].level != buckets[i-1].level) {
+            start = i;
+        } else if(i - start + 1 == B + 2){
+            buckets[start+1].mg.merge(buckets[start].mg);
+            buckets[start+1].element_count += buckets[start].element_count;
+            buckets[start+1].oldest_timestamp = buckets[start].oldest_timestamp;
+            buckets[start+1].level += 1; 
+            buckets.erase(buckets.begin() + start);
             return true;
         }
-    }   return false;
+    }
+    return false;
 }
 
 void SlidingWindow::cascade_merge(){
