@@ -44,7 +44,6 @@ void MisraGries::merge(const MisraGries& other){
 }
 
 std::unordered_map<int64_t, int64_t> MisraGries::get_frequencies(){
-    std::cout << "get_frequencies: H.size()=" << H.size() << " m=" << m << " threshold=" << m/s << std::endl;
     std::unordered_map<int64_t, int64_t> high_freq;
     for(auto iter = this->H.begin(); iter != this->H.end();){
         if(iter->second > this->m / this->s ) { high_freq[iter->first] = iter->second; ++iter; }
