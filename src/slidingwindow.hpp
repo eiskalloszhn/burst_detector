@@ -17,6 +17,13 @@ struct Bucket{
     Bucket(int s, int level = 0) : mg(s), oldest_timestamp(0), newest_timestamp(0), element_count(0) {}
 };
 
+struct BurstSketches{
+    MisraGries baseline;
+    MisraGries recent;
+
+    BurstSketches(int s): baseline(s), recent(s) {}
+};
+
 class SlidingWindow{
     public:
         SlidingWindow(int s) : s(s), current(s) {}
@@ -30,6 +37,8 @@ class SlidingWindow{
             } return t;
         }
 
+        BurstSketches split_query();
+        std::unordered_map<int64_t, double> burst_scores();
 
     private:
         bool merge();

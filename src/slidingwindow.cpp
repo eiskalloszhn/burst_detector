@@ -52,3 +52,35 @@ std::unordered_map<int64_t, int64_t> SlidingWindow::query(){
 
     return tmp.get_frequencies();
 }
+
+BurstSketches SlidingWindow::split_query(){
+    BurstSketches result(s);
+
+    if(buckets.empty()) { return result; }
+
+    result.recent = buckets.back().mg;
+
+    for(size_t i = 0; i < buckets.size() - 1; i++){
+        result.baseline.merge(buckets[i].mg);
+    }
+    return result;
+}
+
+std::unordered_map<int64_t, double> SlidingWindow::burst_scores(){
+    BurstSketches bsk = split_query();
+    std::unordered_map<int64_t, double> scores;
+
+    double recent_m = (double) bsk.recent.get_m();
+    double base_m = (double) bsk.baseline.get_m();
+
+    if(recent_m == 0 || base_m < s) { return scores; }
+
+    for(auto& [hash, count]: bsk.recent.get_frequencies()){
+        double recent_freq = (double) count / recent_m;
+        double base_count = (double) bsk.baseline.count_of_hash(hash) + base_m / s;
+        double base_freq = (double) base_count / base_m;
+
+        scores[hash] = recent_freq / base_freq;
+    }
+    return scores;
+}
