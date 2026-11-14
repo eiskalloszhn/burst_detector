@@ -4,6 +4,9 @@
 #include <stdexcept>
 #include <iostream>
 
+// Open stream, decompress .zstd files and populate nput and output buffers
+// as documented in the zstd.h source code
+
 ZSTDReader::ZSTDReader(const std::string& filepath){
     file.open(filepath, std::ifstream::binary);
     if (!file.is_open()) {
@@ -24,25 +27,38 @@ ZSTDReader::~ZSTDReader(){
     ZSTD_freeDStream(dstream);
 }
 
+// next_line(): return next line or nullopt. Decompress chunk by chunk, hold in tailing
+// until \n, then return
+
 std::optional<std::string> ZSTDReader::next_line(){
     while (true){
-        size_t newline_pos = tailing.find('\n');
+        // if a complete line is already buffered, return it and advance head past it
+        size_t newline_pos = tailing.find('\n', head); 
         if (newline_pos != std::string::npos) {
-            std::string newline = tailing.substr(0, newline_pos);
-            tailing = tailing.substr(newline_pos + 1);
-        return newline;
+            std::string newline = tailing.substr(head, newline_pos - head);
+            head = newline_pos + 1;
+            return newline; 
         }
-        if (input.pos == input.size) {
+        // if the previous output was full, the decoder may still hold data, so try to decompress once
+        if (input.pos == input.size && output.pos != output.size) {
             file.read(in_vec.data(), in_vec.size());
-            if (file.gcount() == 0) { 
-                if (tailing.empty()) { return std::nullopt; }
-                else { std::string ret = tailing; tailing.clear(); return ret; }
+            if (file.gcount() == 0) { // if eof
+                if (head == tailing.size()) { return std::nullopt; } // nothing left in tailing return nullopt
+                else { // last decompressed line had no /n at the end, return tailing once
+                    std::string ret = tailing.substr(head); 
+                    tailing.clear(); 
+                    head = 0; 
+                    return ret; 
+                }
             } else { 
+                // read chunk from file
                 input.size = file.gcount(); 
             } 
+            // reset position to start of chunk
             input.pos = 0;
         }
-
+        
+        // decompress
         size_t in_before = input.pos;
         output.pos = 0;
         size_t val = ZSTD_decompressStream(dstream, &output, &input);
@@ -50,10 +66,16 @@ std::optional<std::string> ZSTDReader::next_line(){
         if (ZSTD_isError(val)) {
             throw std::runtime_error(ZSTD_getErrorName(val));
         } else {
-            std::string chunk(out_vec.data(), output.pos);
-            tailing += chunk;
+            // update tailing with new chunk
+            tailing.append(out_vec.data(), output.pos);
+            
+            if (head > 0) { // if head does not point at the beginning
+                tailing.erase(0, head); // drop the part of tailing already returned, reset head
+                head = 0; 
+            }
         }
 
+        // sanity check: stream loaded correctly
         if (output.pos == 0 && input.pos == in_before) {
             if(input.pos == input.size) continue;
             throw std::runtime_error(

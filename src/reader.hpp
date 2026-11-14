@@ -17,5 +17,6 @@ class ZSTDReader{
         std::vector<char> out_vec;
         ZSTD_outBuffer output;
         std::string tailing;
+        size_t head = 0;
 
 };
