@@ -1,23 +1,24 @@
 #include "json.hpp"
 #include "record.hpp"
+
+#include <cctype>
+#include <algorithm>
 #include <regex>
 #include <string>
 #include <iostream>
 
 using json = nlohmann::json;
 
-static std::regex url("https?://\\S+");
-static std::regex removed("\\[removed\\]", std::regex_constants::icase);
-static std::regex deleted("\\[deleted\\]", std::regex_constants::icase);
-
+// accounts for incongruence in file data: handles created_utc field as string and int
 int64_t extract_timestamp(const json& obj){
-    if(obj["created_utc"].is_string()){
-        return std::stoll(obj["created_utc"].get<std::string>());
-    } else { return obj["created_utc"].get<int64_t>(); }
+    if(obj.at("created_utc").is_string()){
+        return std::stoll(obj.at("created_utc").get<std::string>());
+    } else { return obj.at("created_utc").get<int64_t>(); }
 }
 
-/// unwanted char stripper
-/// leading checks the structure: 0: 1 byte, 1: cont byte, 2: 2 byte...
+// Strip unwanted characters (special chars, emojis, punctuation)
+
+// check structure of byte by counting leading 1s
 int leading(unsigned char byte){
     int count = 0;
     unsigned char mask = 0b10000000;
@@ -28,8 +29,9 @@ int leading(unsigned char byte){
     return count;
 }
 
-/// decode chars to check point range
+// decode chars to check point range
 int utf8_decode(std::string& text, size_t pos, int& out_len){
+    // get first byte, check leading 
     unsigned char first_byte = text[pos];
     int byte_count = leading(first_byte);
     unsigned long long decoded;
@@ -41,11 +43,14 @@ int utf8_decode(std::string& text, size_t pos, int& out_len){
         else if(byte_count == 4) { out_len = 4; first_byte = first_byte & 0b00000111; }
         else { out_len = 1; first_byte = first_byte & 0b00000000; return (int) first_byte; }
 
+    // update with first byte and corresponding shift
     decoded = first_byte << shift;
+    
+    // decrease count, decode continuation bytes until count is 0
     byte_count -= 1;
-
     do{
-        shift = (byte_count-1) *6;
+        shift = (byte_count-1) *6; // get new shift
+        // get byte in next pos, catch out of range
         pos += 1;
         unsigned char next_pos_value;
         try{ 
@@ -56,6 +61,7 @@ int utf8_decode(std::string& text, size_t pos, int& out_len){
             out_len = 1;
             return 0;
         }
+        // decode, shift, insert in decoded using OR, decrease count
         unsigned char next_byte = next_pos_value & 0b00111111;
         unsigned long long x = next_byte << shift; 
         decoded = decoded | x;
@@ -65,6 +71,7 @@ int utf8_decode(std::string& text, size_t pos, int& out_len){
     return (int) decoded;
 }
 
+// deletes byte if in code point ranges
 std::string stripper(std::string& text){
     std::string output;
     size_t pos = 0;
@@ -83,16 +90,14 @@ std::string stripper(std::string& text){
                                 (code_point >= 0x7B && code_point <= 0x7E);
 
         if(!is_emoji && !is_punctuation){
-            output += text.substr(pos, len);
+            output.append(text, pos, len);
         }
-
         pos += len;
     }
-
     return output;
 }
 
-
+// Parser for json fields
 
 std::optional<Record> parse_record(std::string& line){
     json rec;
@@ -100,40 +105,43 @@ std::optional<Record> parse_record(std::string& line){
 
     try{
         rec = json::parse(line);
-        bool is_sub = rec.contains("title");
+        bool is_sub = rec.contains("title"); // consistent discriminating field
 
         result.typeflag = is_sub;
         result.author = rec["author"].get<std::string>();
         result.timestamp = extract_timestamp(rec);
         
+        // different fields in subs and comms
         if(is_sub) {
+            
             result.link = "https://www.reddit.com" + rec["permalink"].get<std::string>();
-            result.text = rec["title"].get<std::string>() + " " + rec["selftext"].get<std::string>();
+            
+            result.text = rec["title"].get<std::string>() + " " + // load title into text
+                // load text, default empty string if text is empty or not string
+                (rec.contains("selftext") && rec["selftext"].is_string() ? rec["selftext"].get<std::string>() : std::string());
         
         } else { // is_comment
+            
             if(rec.contains("permalink")) {
                 result.link = "https://www.reddit.com" + rec["permalink"].get<std::string>();
-            } else {
+            
+            } else { // build permalink for older comments where it was not stored
             int len = rec["link_id"].get<std::string>().length();
             result.link = "https://www.reddit.com/r/memes/comments/"
                 + rec["link_id"].get<std::string>().substr(3, len-3) 
                 + "/_/" + rec["id"].get<std::string>();
             }
-            result.text = rec["body"].get<std::string>();
-        }
-        
+            
+            result.text = rec["body"].get<std::string>(); // comments can only be strings and cannot be empty
+        }  
     } 
-    catch(json::exception& e){ return std::nullopt; }
+    catch(std::exception& e){ return std::nullopt; }
 
-    result.text= std::regex_replace(result.text, url, " ");
-    result.text= std::regex_replace(result.text, removed, " ");
-    result.text= std::regex_replace(result.text, deleted, " ");
-    result.author= std::regex_replace(result.author, removed, "AUTHOR_REMOVED");
-    result.author= std::regex_replace(result.author, deleted, "AUTHOR_REMOVED");
+    result.text = stripper(result.text);
 
-    std::string trimmed = stripper(result.text);
-    trimmed.erase(remove_if(trimmed.begin(), trimmed.end(), isspace), trimmed.end());
-
+    // check whether final text field is empty or only whitespaces
+    std::string trimmed = result.text;
+    trimmed.erase(remove_if(trimmed.begin(), trimmed.end(), [](unsigned char c){ return std::isspace(c); }), trimmed.end());
     if(trimmed.empty()) { return std::nullopt; }
 
     return result;
