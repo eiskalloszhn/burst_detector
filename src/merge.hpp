@@ -8,7 +8,6 @@ class Merger{
     public:
         Merger(const std::array<std::string, 2>& filepaths);
         std::optional<Record> merged_next();
-        bool has_next();
     
     private:
         std::array<ZSTDReader, 2> readers;
