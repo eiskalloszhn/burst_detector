@@ -12,7 +12,7 @@ std::vector<std::string> tokenize(const std::string& text){
 
     while(is >> token){
         std::transform(token.begin(), token.end(), token.begin(), tolower); // lowercase all tokens
-        if(token.length() > 1 || token.rfind("http", 0)) {                  // discard tokens shorter tha 1 char and links
+        if(token.length() > 1 && token.rfind("http", 0) != 0) {             // discard tokens shorter tha 1 char and links
             output.push_back(token); 
         }
     }

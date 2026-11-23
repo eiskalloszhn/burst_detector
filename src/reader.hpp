@@ -1,6 +1,10 @@
 #pragma once
+
 #include <fstream>
 #include <zstd.h>
+#include <vector>
+#include <optional>
+#include <string>
 
 class ZSTDReader{
     
