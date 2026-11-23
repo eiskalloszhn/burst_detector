@@ -1,4 +1,5 @@
 #include "reader.hpp"
+
 #include <zstd.h>
 #include <fstream>
 #include <stdexcept>
@@ -44,7 +45,7 @@ std::optional<std::string> ZSTDReader::next_line(){
             file.read(in_vec.data(), in_vec.size());
             if (file.gcount() == 0) { // if eof
                 if (head == tailing.size()) { return std::nullopt; } // nothing left in tailing return nullopt
-                else { // last decompressed line had no /n at the end, return tailing once
+                else {                                               // last decompressed line had no /n at the end, return tailing once
                     std::string ret = tailing.substr(head); 
                     tailing.clear(); 
                     head = 0; 
@@ -69,8 +70,8 @@ std::optional<std::string> ZSTDReader::next_line(){
             // update tailing with new chunk
             tailing.append(out_vec.data(), output.pos);
             
-            if (head > 0) { // if head does not point at the beginning
-                tailing.erase(0, head); // drop the part of tailing already returned, reset head
+            if (head > 0) {                                           // if head does not point at the beginning
+                tailing.erase(0, head);                               // drop the part of tailing already returned, reset head
                 head = 0; 
             }
         }

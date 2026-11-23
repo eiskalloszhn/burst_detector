@@ -3,7 +3,6 @@
 
 #include <cctype>
 #include <algorithm>
-#include <regex>
 #include <string>
 #include <iostream>
 
@@ -49,7 +48,7 @@ int utf8_decode(std::string& text, size_t pos, int& out_len){
     // decrease count, decode continuation bytes until count is 0
     byte_count -= 1;
     do{
-        shift = (byte_count-1) *6; // get new shift
+        shift = (byte_count-1) *6;                                  // get new shift
         // get byte in next pos, catch out of range
         pos += 1;
         unsigned char next_pos_value;
@@ -105,7 +104,7 @@ std::optional<Record> parse_record(std::string& line){
 
     try{
         rec = json::parse(line);
-        bool is_sub = rec.contains("title"); // consistent discriminating field
+        bool is_sub = rec.contains("title");                        // consistent discriminating field
 
         result.typeflag = is_sub;
         result.author = rec["author"].get<std::string>();
@@ -116,7 +115,7 @@ std::optional<Record> parse_record(std::string& line){
             
             result.link = "https://www.reddit.com" + rec["permalink"].get<std::string>();
             
-            result.text = rec["title"].get<std::string>() + " " + // load title into text
+            result.text = rec["title"].get<std::string>() + " " +   // load title into text
                 // load text, default empty string if text is empty or not string
                 (rec.contains("selftext") && rec["selftext"].is_string() ? rec["selftext"].get<std::string>() : std::string());
         
@@ -132,7 +131,7 @@ std::optional<Record> parse_record(std::string& line){
                 + "/_/" + rec["id"].get<std::string>();
             }
             
-            result.text = rec["body"].get<std::string>(); // comments can only be strings and cannot be empty
+            result.text = rec["body"].get<std::string>();           // comments can only be strings and cannot be empty
         }  
     } 
     catch(std::exception& e){ return std::nullopt; }

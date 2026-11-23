@@ -1,19 +1,24 @@
 #include "bottomk.hpp"
+
 #include <set>
 
+// insert value into sketch
 void BottomK::insert_sketch(double value){
-    ++n;
-    if(bottomk.count(value)) return;
-    if(bottomk.size() < k) { bottomk.insert(value); }
-    else if(bottomk.size() == k) {
-        if(*bottomk.rbegin() > value ) {
-            bottomk.erase(*bottomk.rbegin());
-            bottomk.insert(value);
-        }
-    } // skip sketch full case if no substitution can be done
-}
+    ++n;                                                        // increment elements seen
 
+    if(bottomk.count(value)) return;                            // ignore if duplicate
+
+    if(bottomk.size() < k) {                                    // insert if new value && not full
+        bottomk.insert(value);
+    }
+    else if(*bottomk.rbegin() > value ) {                       // if current value is smaller than the kth smallest stored
+        bottomk.erase(*bottomk.rbegin());                       // erase the kth smallest
+        bottomk.insert(value);                                  // insert the current one
+    }
+} 
+
+// estimate distint elements seen in the stream
 double BottomK::estimate(){
-    if(bottomk.size() < k) return (double) bottomk.size();
-    return (double) k / *bottomk.rbegin();
+    if(bottomk.size() < k) return (double) bottomk.size();      // return exact count when elements seen < k
+    return (double) (k - 1) / *bottomk.rbegin();                // unbiased etimator of F0
 }
