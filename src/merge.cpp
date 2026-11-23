@@ -1,4 +1,5 @@
 #include <optional>
+
 #include "parser.hpp"
 #include "reader.hpp"
 #include "merge.hpp"
@@ -48,7 +49,7 @@ std::optional<Record> Merger::merged_next(){
     if(index == -1) { return std::nullopt; } // index not valid
     
     Record result = *candidates[index];
-    candidates[index] = get_next_valid(readers[index]); // replace Record that gets return for next comaparison
+    candidates[index] = get_next_valid(readers[index]); // replace Record that gets returned for next comaparison
     
     return result;
 }
