@@ -6,32 +6,50 @@
 #include <random>
 #include <vector>
 #include <cstdint>
-
+#include <array>
+#include <utility>
 
 namespace {
     // Marsenne prime 2^61 - 1 for hashing module
     constexpr int64_t q = 2305843009213693951LL;
     
-    // Seeded random base p in range [10^9, q - 10^9]
-    const int64_t p = [](){
+    // Two seeded, independent random base p in range [10^9, q - 10^9]
+    const std::pair<int64_t, int64_t> bases = [](){
         std::mt19937_64 gen(12345);
-        return (int64_t)( gen() % (q - 2000000000LL) ) + 1000000000LL;
-    }();
+        auto draw = [&]() -> int64_t {
+            return (int64_t)( gen() % (q - 2000000000LL) ) + 1000000000LL;
+        };
+        int64_t a = draw();
+        int64_t b = draw();
+        
+        while(a == b){
+            b = draw();
+        }
 
-    // Computation of powers p mod q for hashing
-    const int64_t p1 = p;
-    const int64_t p2 = (__int128)p1 * p%q;
-    const int64_t p3 = (__int128)p2 * p%q;
-    const int64_t p4 = (__int128)p3 * p%q;
+        return std::make_pair(a, b);
+    }();
+    const int64_t p_word = bases.first;
+    const int64_t p_gram = bases.second;
 
     // Polynomial hash of single token
     auto token_to_int(const std::string& token){
         int64_t result = 0;
         for(unsigned char c: token){
-            result = ( (__int128) result * p + c ) % q;
+            result = (int64_t) ( (__int128) result * p_word + c ) % q;
         }
-        return (int64_t) result;
+        return result;
     };
+
+    // Precomputed powers p_gram mod q for rolling hash:
+    // Hash[k] = p_gram^k mod q for k=[0..4]
+    const std::array<int64_t, 5> Hash = [](){
+        std::array<int64_t, 5> h;
+        h[0] = 1;
+        for (int k = 1; k < 5; k++){
+            h[k] = (int64_t) ( (__int128_t) h[k-1] * p_gram % q );
+        }
+        return h;
+    }();
 
     // SplitMix64 for uniform bit distribution for author hashes (for BottomK correctness)
     uint64_t splitmix64(uint64_t x){
@@ -88,10 +106,10 @@ void rolling_hash(SlidingWindow& sw,
     }
 
     // compute initial 5-gram hash
-    int64_t roll_hash = (int64_t)( ( (__int128)tokens_hash[0]*p4 %q + 
-                                    (__int128)tokens_hash[1]*p3 %q + 
-                                    (__int128)tokens_hash[2]*p2 %q + 
-                                    (__int128)tokens_hash[3]*p1 %q + 
+    int64_t roll_hash = (int64_t)( ( (__int128)tokens_hash[0]*Hash[4] %q + 
+                                    (__int128)tokens_hash[1]*Hash[3] %q + 
+                                    (__int128)tokens_hash[2]*Hash[2] %q + 
+                                    (__int128)tokens_hash[3]*Hash[1] %q + 
                                     (__int128)tokens_hash[4] )
                                     % q );
 
@@ -101,9 +119,9 @@ void rolling_hash(SlidingWindow& sw,
     // slide the 5-gram window across the remaining tokens in the phrase one at a time
     for(size_t pos = 5; pos <= tokens.size() - 1; pos++){
         __int128 rh = roll_hash;
-        rh -= (__int128)tokens_hash[pos - 5] * p4 % q;                              // remove leftmost token
+        rh -= (__int128)tokens_hash[pos - 5] * Hash[4] % q;                              // remove leftmost token
         if(rh < 0) rh += q;
-        roll_hash = (int64_t)( (rh * p + tokens_hash[pos]) % q );                   // add incoming token
+        roll_hash = (int64_t)( (rh * p_gram + tokens_hash[pos]) % q );                   // add incoming token
         
         process_5gram(roll_hash, pos - 4);                                          // process with corresponding idx
     }
