@@ -1,6 +1,10 @@
 .vscode
+.venv
 /build
+/tests/*.csv
+/tests/eval_out
+!/tests/data
 */main.dSYM/Contents
-CMakeLists.txt
 .DS_Store
 src/.DS_Store
+*.txt
