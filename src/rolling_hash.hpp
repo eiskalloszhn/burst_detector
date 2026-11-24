@@ -4,6 +4,9 @@
 #include "bottomk.hpp"
 
 #include <unordered_set>
+#include <string>
+#include <vector>
+#include <unordered_map>
 
 using Phrase     = std::pair<std::string, std::string>;                 // (5-gram text, link of first occurrence)
 using ReverseMap = std::unordered_map<int64_t, Phrase>;                 // (hash fingerprint, element data)

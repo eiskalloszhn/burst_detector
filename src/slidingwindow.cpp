@@ -52,6 +52,10 @@ void SlidingWindow::process(int64_t hash, int64_t timestamp){
 
 }
 
+// query() is not used anymore: I keep it to show the case where 
+// detection is done without baseline comparisons:
+// it is substituted by split_query() together with burst_scores()
+
 // merge all Buckets in queue, return heavy hitters
 std::unordered_map<int64_t, int64_t> SlidingWindow::query(){
     MisraGries tmp = current.mg;

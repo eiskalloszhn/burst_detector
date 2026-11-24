@@ -1,6 +1,8 @@
 #pragma once
 
 #include <optional>
+#include <array>
+#include <string>
 
 #include "reader.hpp"
 #include "parser.hpp"

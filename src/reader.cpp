@@ -1,9 +1,11 @@
 #include "reader.hpp"
+#include "parser.hpp"
 
 #include <zstd.h>
 #include <fstream>
 #include <stdexcept>
 #include <iostream>
+#include <optional>
 
 // Open stream, decompress .zstd files and populate nput and output buffers
 // as documented in the zstd.h source code

@@ -4,6 +4,8 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
+#include <cstdint>
 
 // MisraGries sketch for heavy hitter detection:
 //  – insert new hash, or increase existing counter

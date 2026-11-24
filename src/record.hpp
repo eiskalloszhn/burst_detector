@@ -1,5 +1,7 @@
 #pragma once
+
 #include <string>
+#include <cstdint>
 
 struct Record{
     bool typeflag; // true if submission, false if comment

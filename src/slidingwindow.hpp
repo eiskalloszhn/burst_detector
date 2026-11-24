@@ -36,6 +36,7 @@ class SlidingWindow{
     public:
         SlidingWindow(size_t s) : s(s), current(s) {}
         void process(int64_t hash, int64_t timestamp);          // process new stream element
+        // query() is not used anymore: I keep it to show the case where detection is done without baseline comparisons
         std::unordered_map<int64_t, int64_t> query();           // merge all Bucket's sketches in WINDOW_SIZE, estimate frequencies
         
         // diagnostics: Bucket count, total counters in Bucket queue, sealed Buckets

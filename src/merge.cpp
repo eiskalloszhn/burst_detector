@@ -1,4 +1,5 @@
 #include <optional>
+#include <cstdint>
 
 #include "parser.hpp"
 #include "reader.hpp"
@@ -6,16 +7,18 @@
 
 // Merge decompressed and parsed Records, sorted by timestamp
 
-// fetch next valid Record
-std::optional<Record> get_next_valid(ZSTDReader& reader){
-    while(true){
-        // decompress line
-        std::optional<std::string> next = reader.next_line();
-        if(!next.has_value()) { return std::nullopt; }
-        
-        // parse line
-        std::optional<Record> record = parse_record(*next);
-        if(record.has_value()) { return record; }
+namespace{
+    // fetch next valid Record
+    std::optional<Record> get_next_valid(ZSTDReader& reader){
+        while(true){
+            // decompress line
+            std::optional<std::string> next = reader.next_line();
+            if(!next.has_value()) { return std::nullopt; }
+            
+            // parse line
+            std::optional<Record> record = parse_record(*next);
+            if(record.has_value()) { return record; }
+        }
     }
 }
 

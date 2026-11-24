@@ -3,6 +3,13 @@
 #include <algorithm>
 #include <vector>
 
+namespace{
+    // comparator helper for merging
+    bool comp(std::pair<int64_t, int64_t> a, std::pair<int64_t, int64_t> b){
+        return a.second > b.second;
+    }
+}
+
 // insert new element in the sketch
 void MisraGries::insert(int64_t x){
     ++m; // increment elements_seen counter
@@ -23,11 +30,6 @@ void MisraGries::insert(int64_t x){
             else { ++iter; }
         }
     }
-}
-
-// comparator helper for merging
-bool comp(std::pair<int64_t, int64_t> a, std::pair<int64_t, int64_t> b){
-    return a.second > b.second;
 }
 
 // merge two existing sketches
