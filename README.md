@@ -26,7 +26,7 @@ A parameter sweep to find the best correctness-space/time tradeoff is yet to be 
 
 ## Build & Run
 
-Dependencies: C++17 compiler, CMake (\(\ge 3.20\)), `libzstd`, `nlohmann/json`.
+Dependencies: C++17 compiler, CMake $(\ge 3.20)$, `libzstd`, `nlohmann/json`.
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
