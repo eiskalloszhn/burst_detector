@@ -119,9 +119,9 @@ void rolling_hash(SlidingWindow& sw,
     // slide the 5-gram window across the remaining tokens in the phrase one at a time
     for(size_t pos = 5; pos <= tokens.size() - 1; pos++){
         __int128 rh = roll_hash;
-        rh -= (__int128)tokens_hash[pos - 5] * Hash[4] % q;                              // remove leftmost token
+        rh -= (__int128)tokens_hash[pos - 5] * Hash[4] % q;                         // remove leftmost token
         if(rh < 0) rh += q;
-        roll_hash = (int64_t)( (rh * p_gram + tokens_hash[pos]) % q );                   // add incoming token
+        roll_hash = (int64_t)( (rh * p_gram + tokens_hash[pos]) % q );              // add incoming token
         
         process_5gram(roll_hash, pos - 4);                                          // process with corresponding idx
     }
